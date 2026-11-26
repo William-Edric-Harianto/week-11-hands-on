@@ -11,9 +11,13 @@ class ServiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $services = Service::all();
+        $search = $request->query('search', '');
+
+        $services = Service::where('name', 'like', '%'.$search.'%')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('services.view-service', compact('services'));
     }
@@ -32,7 +36,7 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => 'required|string|min:2|max:100',
             'description' => 'required|string|max:1000',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -60,7 +64,7 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => 'required|string|min:2|max:100',
             'description' => 'required|string|max:1000',
             'image' => 'nullable|image|max:2048',
         ]);

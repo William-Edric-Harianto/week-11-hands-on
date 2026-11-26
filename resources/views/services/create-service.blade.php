@@ -14,7 +14,7 @@
 
             <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" id="name" name="name" class="form-control" maxlength="100"
+                <input type="text" id="name" name="name" class="form-control" minlength="2" maxlength="100"
                     value="{{ old('name') }}" required>
                 @error('name')
                     <p class="error">{{ $message }}</p>
@@ -31,7 +31,11 @@
 
             <div class="form-group">
                 <label for="image">Image</label>
-                <input type="file" id="image" name="image" accept="image/*">
+                <div data-preview-wrapper style="margin-bottom: 8px; display: none;">
+                    <img id="image_preview" src="" alt="service_image" width="150">
+                </div>
+                <input type="file" id="image" name="image" accept="image/*" value="{{ old('image') }}"
+                    data-preview="image_preview">
                 @error('image')
                     <p class="error">{{ $message }}</p>
                 @enderror

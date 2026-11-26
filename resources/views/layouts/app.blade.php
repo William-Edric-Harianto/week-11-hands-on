@@ -169,6 +169,96 @@
             color: #64748b;
             padding: 2rem 1rem;
         }
+        .pagination-nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .pagination-info {
+            margin: 0;
+            font-size: 0.8125rem;
+            color: #475569;
+        }
+        .pagination {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .pagination-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            height: 2rem;
+            padding: 0 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background-color: #ffffff;
+            color: #0f172a;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-decoration: none;
+            line-height: 1;
+        }
+        a.pagination-link:hover {
+            background-color: #f1f5f9;
+        }
+        .pagination-link.active {
+            background-color: #0f172a;
+            border-color: #0f172a;
+            color: #ffffff;
+        }
+        .pagination-link.disabled {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            cursor: not-allowed;
+        }
+        .auth-card {
+            max-width: 440px;
+            margin: 0 auto;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .nav-user {
+            font-size: 0.875rem;
+            color: #475569;
+        }
+        .nav-logout-form {
+            margin: 0;
+        }
+        .muted-text {
+            font-size: 0.875rem;
+            color: #475569;
+        }
+        .alert-success {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-admin {
+            background-color: #0f172a;
+            color: #ffffff;
+        }
+        .badge-user {
+            background-color: #e2e8f0;
+            color: #334155;
+        }
     </style>
 </head>
 <body>
@@ -182,6 +272,26 @@
                 <a href="{{ route('service-list') }}" class="nav-link {{ request()->routeIs('service-list', 'create-service', 'edit-service') ? 'active' : '' }}">
                     Services
                 </a>
+                @auth
+                    @if (auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.index') }}" class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}">
+                            Admin
+                        </a>
+                    @endif
+                @endauth
+            </div>
+            <div class="nav-right">
+                @auth
+                    <span class="nav-user">Welcome, {{ auth()->user()->name }}</span>
+                    <form action="{{ route('logout') }}" method="POST" class="nav-logout-form">
+                        @csrf
+                        <button type="submit" class="btn btn-secondary">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">
+                        Login
+                    </a>
+                @endauth
             </div>
         </div>
     </nav>
@@ -189,5 +299,34 @@
     <main class="container">
         @yield('content')
     </main>
+
+    <script>
+        document.addEventListener('change', function (event) {
+            const input = event.target;
+            if (!input.matches('input[type="file"][data-preview]')) {
+                return;
+            }
+
+            const preview = document.getElementById(input.dataset.preview);
+            const wrapper = preview ? preview.closest('[data-preview-wrapper]') : null;
+            const file = input.files && input.files[0];
+
+            if (!preview || !file) {
+                return;
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            preview.onload = function () {
+                URL.revokeObjectURL(objectUrl);
+            };
+            preview.src = objectUrl;
+
+            if (wrapper) {
+                wrapper.style.display = 'block';
+            } else {
+                preview.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

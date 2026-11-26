@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -23,12 +24,13 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_index_displays_services_with_update_and_delete_actions(): void
     {
+        $user = User::factory()->create();
         $service = Service::factory()->create([
             'name' => 'Deep Cleaning',
             'description' => 'Full interior and exterior cleaning.',
         ]);
 
-        $response = $this->get(route('service-list'));
+        $response = $this->actingAs($user)->get(route('service-list'));
 
         $response->assertOk();
         $response->assertSee('Deep Cleaning');
@@ -41,7 +43,9 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_create_page_renders(): void
     {
-        $response = $this->get(route('create-service'));
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('create-service'));
 
         $response->assertOk();
         $response->assertViewIs('services.create-service');
@@ -50,7 +54,9 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_can_be_stored(): void
     {
-        $response = $this->post(route('store-service'), [
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('store-service'), [
             'name' => 'Laptop Repair',
             'description' => 'Hardware diagnostics and replacement.',
         ]);
@@ -64,12 +70,13 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_edit_page_renders_with_bound_service(): void
     {
+        $user = User::factory()->create();
         $service = Service::factory()->create([
             'name' => 'Screen Replacement',
             'description' => 'Replace cracked LCD display.',
         ]);
 
-        $response = $this->get(route('edit-service', $service));
+        $response = $this->actingAs($user)->get(route('edit-service', $service));
 
         $response->assertOk();
         $response->assertViewIs('services.edit-service');
@@ -79,12 +86,13 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_can_be_updated(): void
     {
+        $user = User::factory()->create();
         $service = Service::factory()->create([
             'name' => 'Old Service',
             'description' => 'Old description.',
         ]);
 
-        $response = $this->post(route('update-service', $service), [
+        $response = $this->actingAs($user)->post(route('update-service', $service), [
             'name' => 'Updated Service',
             'description' => 'Updated description.',
         ]);
@@ -99,9 +107,10 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_can_be_deleted(): void
     {
+        $user = User::factory()->create();
         $service = Service::factory()->create();
 
-        $response = $this->delete(route('delete-service', $service));
+        $response = $this->actingAs($user)->delete(route('delete-service', $service));
 
         $response->assertRedirect(route('service-list'));
         $this->assertDatabaseMissing('services', [
@@ -111,7 +120,9 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_store_validates_input(): void
     {
-        $emptyResponse = $this->from(route('create-service'))->post(route('store-service'), [
+        $user = User::factory()->create();
+
+        $emptyResponse = $this->actingAs($user)->from(route('create-service'))->post(route('store-service'), [
             'name' => '',
             'description' => '',
         ]);
@@ -120,7 +131,7 @@ class ServiceCrudTest extends TestCase
         $emptyResponse->assertSessionHasErrors(['name', 'description']);
         $this->assertDatabaseCount('services', 0);
 
-        $tooLongResponse = $this->from(route('create-service'))->post(route('store-service'), [
+        $tooLongResponse = $this->actingAs($user)->from(route('create-service'))->post(route('store-service'), [
             'name' => str_repeat('a', 101),
             'description' => str_repeat('b', 1001),
         ]);
@@ -132,12 +143,13 @@ class ServiceCrudTest extends TestCase
 
     public function test_service_update_validates_input(): void
     {
+        $user = User::factory()->create();
         $service = Service::factory()->create([
             'name' => 'Original Service',
             'description' => 'Original description.',
         ]);
 
-        $response = $this->from(route('edit-service', $service))->post(route('update-service', $service), [
+        $response = $this->actingAs($user)->from(route('edit-service', $service))->post(route('update-service', $service), [
             'name' => '',
             'description' => str_repeat('b', 1001),
         ]);
@@ -154,10 +166,11 @@ class ServiceCrudTest extends TestCase
     public function test_service_image_can_be_stored_updated_and_displayed(): void
     {
         Storage::fake('public');
+        $user = User::factory()->create();
 
         $image = UploadedFile::fake()->image('service.jpg');
 
-        $storeResponse = $this->post(route('store-service'), [
+        $storeResponse = $this->actingAs($user)->post(route('store-service'), [
             'name' => 'AC Cleaning',
             'description' => 'Full AC unit cleaning.',
             'image' => $image,
@@ -168,14 +181,14 @@ class ServiceCrudTest extends TestCase
         $this->assertNotNull($service->image);
         Storage::disk('public')->assertExists($service->image);
 
-        $indexResponse = $this->get(route('service-list'));
+        $indexResponse = $this->actingAs($user)->get(route('service-list'));
         $indexResponse->assertOk();
         $indexResponse->assertSee(asset('storage/'.$service->image), false);
 
         $newImage = UploadedFile::fake()->image('service-new.jpg');
         $oldImagePath = $service->image;
 
-        $updateResponse = $this->post(route('update-service', $service), [
+        $updateResponse = $this->actingAs($user)->post(route('update-service', $service), [
             'name' => 'AC Cleaning Pro',
             'description' => 'Updated AC unit cleaning.',
             'image' => $newImage,
@@ -186,7 +199,7 @@ class ServiceCrudTest extends TestCase
         Storage::disk('public')->assertMissing($oldImagePath);
         Storage::disk('public')->assertExists($service->image);
 
-        $this->delete(route('delete-service', $service));
+        $this->actingAs($user)->delete(route('delete-service', $service));
         Storage::disk('public')->assertMissing($service->image);
     }
 }

@@ -11,9 +11,13 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::all();
+        $search = $request->query('search', '');
+
+        $customers = Customer::where('name', 'like', '%'.$search.'%')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('customers.view-customer', compact('customers'));
     }

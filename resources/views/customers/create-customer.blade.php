@@ -14,16 +14,8 @@
 
             <div class="form-group">
                 <label for="name">Name</label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    class="form-control"
-                    minlength="2"
-                    maxlength="100"
-                    value="{{ old('name') }}"
-                    required
-                >
+                <input type="text" id="name" name="name" class="form-control" minlength="2" maxlength="100"
+                    value="{{ old('name') }}" required>
                 @error('name')
                     <p class="error">{{ $message }}</p>
                 @enderror
@@ -31,16 +23,8 @@
 
             <div class="form-group">
                 <label for="phone_number">Phone Number</label>
-                <input
-                    type="text"
-                    id="phone_number"
-                    name="phone_number"
-                    class="form-control"
-                    minlength="12"
-                    maxlength="20"
-                    value="{{ old('phone_number') }}"
-                    required
-                >
+                <input type="text" id="phone_number" name="phone_number" class="form-control" minlength="12"
+                    maxlength="20" value="{{ old('phone_number') }}" required>
                 @error('phone_number')
                     <p class="error">{{ $message }}</p>
                 @enderror
@@ -48,7 +32,11 @@
 
             <div class="form-group">
                 <label for="profile_picture">Profile Picture</label>
-                <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                <div data-preview-wrapper style="margin-bottom: 8px; display: none;">
+                    <img id="profile_picture_preview" src="" alt="profile_picture" width="150">
+                </div>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*"
+                    value="{{ old('profile_picture') }}" data-preview="profile_picture_preview">
                 @error('profile_picture')
                     <p class="error">{{ $message }}</p>
                 @enderror

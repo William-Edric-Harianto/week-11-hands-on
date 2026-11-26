@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -23,12 +24,13 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_index_displays_customers_with_update_and_delete_actions(): void
     {
+        $user = User::factory()->create();
         $customer = Customer::factory()->create([
             'name' => 'Budi Santoso',
             'phone_number' => '081234567890',
         ]);
 
-        $response = $this->get(route('customer-list'));
+        $response = $this->actingAs($user)->get(route('customer-list'));
 
         $response->assertOk();
         $response->assertSee('Budi Santoso');
@@ -41,7 +43,9 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_create_page_renders(): void
     {
-        $response = $this->get(route('create-customer'));
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('create-customer'));
 
         $response->assertOk();
         $response->assertViewIs('customers.create-customer');
@@ -50,7 +54,9 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_can_be_stored(): void
     {
-        $response = $this->post(route('store-customer'), [
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('store-customer'), [
             'name' => 'Siti Aminah',
             'phone_number' => '081987654321',
         ]);
@@ -64,12 +70,13 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_edit_page_renders_with_bound_customer(): void
     {
+        $user = User::factory()->create();
         $customer = Customer::factory()->create([
             'name' => 'Andi Wijaya',
             'phone_number' => '085555666777',
         ]);
 
-        $response = $this->get(route('edit-customer', $customer));
+        $response = $this->actingAs($user)->get(route('edit-customer', $customer));
 
         $response->assertOk();
         $response->assertViewIs('customers.edit-customer');
@@ -79,12 +86,13 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_can_be_updated(): void
     {
+        $user = User::factory()->create();
         $customer = Customer::factory()->create([
             'name' => 'Old Name',
             'phone_number' => '081111111111',
         ]);
 
-        $response = $this->post(route('update-customer', $customer), [
+        $response = $this->actingAs($user)->post(route('update-customer', $customer), [
             'name' => 'New Name',
             'phone_number' => '082222222222',
         ]);
@@ -99,9 +107,10 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_can_be_deleted(): void
     {
+        $user = User::factory()->create();
         $customer = Customer::factory()->create();
 
-        $response = $this->delete(route('delete-customer', $customer));
+        $response = $this->actingAs($user)->delete(route('delete-customer', $customer));
 
         $response->assertRedirect(route('customer-list'));
         $this->assertDatabaseMissing('customers', [
@@ -111,7 +120,9 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_store_validates_input(): void
     {
-        $response = $this->from(route('create-customer'))->post(route('store-customer'), [
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->from(route('create-customer'))->post(route('store-customer'), [
             'name' => 'A',
             'phone_number' => '12345',
         ]);
@@ -120,7 +131,7 @@ class CustomerCrudTest extends TestCase
         $response->assertSessionHasErrors(['name', 'phone_number']);
         $this->assertDatabaseCount('customers', 0);
 
-        $emptyResponse = $this->from(route('create-customer'))->post(route('store-customer'), [
+        $emptyResponse = $this->actingAs($user)->from(route('create-customer'))->post(route('store-customer'), [
             'name' => '',
             'phone_number' => '',
         ]);
@@ -128,7 +139,7 @@ class CustomerCrudTest extends TestCase
         $emptyResponse->assertRedirect(route('create-customer'));
         $emptyResponse->assertSessionHasErrors(['name', 'phone_number']);
 
-        $tooLongResponse = $this->from(route('create-customer'))->post(route('store-customer'), [
+        $tooLongResponse = $this->actingAs($user)->from(route('create-customer'))->post(route('store-customer'), [
             'name' => str_repeat('a', 101),
             'phone_number' => str_repeat('1', 21),
         ]);
@@ -139,12 +150,13 @@ class CustomerCrudTest extends TestCase
 
     public function test_customer_update_validates_input(): void
     {
+        $user = User::factory()->create();
         $customer = Customer::factory()->create([
             'name' => 'Original Name',
             'phone_number' => '081234567890',
         ]);
 
-        $response = $this->from(route('edit-customer', $customer))->post(route('update-customer', $customer), [
+        $response = $this->actingAs($user)->from(route('edit-customer', $customer))->post(route('update-customer', $customer), [
             'name' => 'A',
             'phone_number' => '12345',
         ]);
@@ -161,10 +173,11 @@ class CustomerCrudTest extends TestCase
     public function test_customer_profile_picture_can_be_stored_updated_and_displayed(): void
     {
         Storage::fake('public');
+        $user = User::factory()->create();
 
         $profilePicture = UploadedFile::fake()->image('avatar.jpg');
 
-        $storeResponse = $this->post(route('store-customer'), [
+        $storeResponse = $this->actingAs($user)->post(route('store-customer'), [
             'name' => 'Dewi Lestari',
             'phone_number' => '081234567890',
             'profile_picture' => $profilePicture,
@@ -175,14 +188,14 @@ class CustomerCrudTest extends TestCase
         $this->assertNotNull($customer->profile_picture);
         Storage::disk('public')->assertExists($customer->profile_picture);
 
-        $indexResponse = $this->get(route('customer-list'));
+        $indexResponse = $this->actingAs($user)->get(route('customer-list'));
         $indexResponse->assertOk();
         $indexResponse->assertSee(asset('storage/'.$customer->profile_picture), false);
 
         $newPicture = UploadedFile::fake()->image('avatar-new.jpg');
         $oldPicturePath = $customer->profile_picture;
 
-        $updateResponse = $this->post(route('update-customer', $customer), [
+        $updateResponse = $this->actingAs($user)->post(route('update-customer', $customer), [
             'name' => 'Dewi Lestari Updated',
             'phone_number' => '081234567891',
             'profile_picture' => $newPicture,
@@ -193,7 +206,7 @@ class CustomerCrudTest extends TestCase
         Storage::disk('public')->assertMissing($oldPicturePath);
         Storage::disk('public')->assertExists($customer->profile_picture);
 
-        $this->delete(route('delete-customer', $customer));
+        $this->actingAs($user)->delete(route('delete-customer', $customer));
         Storage::disk('public')->assertMissing($customer->profile_picture);
     }
 }
