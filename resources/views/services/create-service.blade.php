@@ -9,20 +9,13 @@
             <a href="{{ route('service-list') }}" class="btn btn-secondary">Back</a>
         </div>
 
-        <form action="{{ route('store-service') }}" method="POST">
+        <form action="{{ route('store-service') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group">
                 <label for="name">Name</label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    class="form-control"
-                    maxlength="100"
-                    value="{{ old('name') }}"
-                    required
-                >
+                <input type="text" id="name" name="name" class="form-control" maxlength="100"
+                    value="{{ old('name') }}" required>
                 @error('name')
                     <p class="error">{{ $message }}</p>
                 @enderror
@@ -30,15 +23,16 @@
 
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    class="form-control"
-                    rows="4"
-                    maxlength="1000"
-                    required
-                >{{ old('description') }}</textarea>
+                <textarea id="description" name="description" class="form-control" rows="4" maxlength="1000" required>{{ old('description') }}</textarea>
                 @error('description')
+                    <p class="error">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="image">Image</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                @error('image')
                     <p class="error">{{ $message }}</p>
                 @enderror
             </div>

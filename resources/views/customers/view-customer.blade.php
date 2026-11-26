@@ -15,6 +15,7 @@
                     <th>#</th>
                     <th>Name</th>
                     <th>Phone Number</th>
+                    <th>Profile Picture</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -24,6 +25,11 @@
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $customer->name }}</td>
                         <td>{{ $customer->phone_number ?? '-' }}</td>
+                        <td>
+                            @if ($customer->profile_picture)
+                                <img src="{{ asset('storage/' . $customer->profile_picture) }}" alt="profile_picture" width="150">
+                            @endif
+                        </td>
                         <td>
                             <div class="actions">
                                 <a href="{{ route('edit-customer', $customer) }}" class="btn btn-secondary">Update</a>
@@ -37,7 +43,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="empty-state">No customers found.</td>
+                        <td colspan="5" class="empty-state">No customers found.</td>
                     </tr>
                 @endforelse
             </tbody>

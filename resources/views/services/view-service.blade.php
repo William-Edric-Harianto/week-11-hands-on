@@ -15,6 +15,7 @@
                     <th>#</th>
                     <th>Name</th>
                     <th>Description</th>
+                    <th>Image</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -24,6 +25,12 @@
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $service->name }}</td>
                         <td>{{ $service->description }}</td>
+                        <td>
+                            @if ($service->image)
+                                <img src="{{ asset('storage/' . $service->image) }}"
+                                alt="service_image" width="150">
+                            @endif
+                        </td>
                         <td>
                             <div class="actions">
                                 <a href="{{ route('edit-service', $service) }}" class="btn btn-secondary">Update</a>
@@ -37,7 +44,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="empty-state">No services found.</td>
+                        <td colspan="5" class="empty-state">No services found.</td>
                     </tr>
                 @endforelse
             </tbody>

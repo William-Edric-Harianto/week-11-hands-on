@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ServiceCrudTest extends TestCase
@@ -147,5 +149,44 @@ class ServiceCrudTest extends TestCase
             'name' => 'Original Service',
             'description' => 'Original description.',
         ]);
+    }
+
+    public function test_service_image_can_be_stored_updated_and_displayed(): void
+    {
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('service.jpg');
+
+        $storeResponse = $this->post(route('store-service'), [
+            'name' => 'AC Cleaning',
+            'description' => 'Full AC unit cleaning.',
+            'image' => $image,
+        ]);
+
+        $storeResponse->assertRedirect(route('service-list'));
+        $service = Service::firstOrFail();
+        $this->assertNotNull($service->image);
+        Storage::disk('public')->assertExists($service->image);
+
+        $indexResponse = $this->get(route('service-list'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee(asset('storage/'.$service->image), false);
+
+        $newImage = UploadedFile::fake()->image('service-new.jpg');
+        $oldImagePath = $service->image;
+
+        $updateResponse = $this->post(route('update-service', $service), [
+            'name' => 'AC Cleaning Pro',
+            'description' => 'Updated AC unit cleaning.',
+            'image' => $newImage,
+        ]);
+
+        $updateResponse->assertRedirect(route('service-list'));
+        $service->refresh();
+        Storage::disk('public')->assertMissing($oldImagePath);
+        Storage::disk('public')->assertExists($service->image);
+
+        $this->delete(route('delete-service', $service));
+        Storage::disk('public')->assertMissing($service->image);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerController extends Controller
 {
@@ -33,7 +34,12 @@ class CustomerController extends Controller
         $data = $request->validate([
             'name' => 'required|string|min:2|max:100',
             'phone_number' => 'required|string|min:12|max:20',
+            'profile_picture' => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('profile_picture')) {
+            $data['profile_picture'] = $request->file('profile_picture')->store('customers', 'public');
+        }
 
         Customer::create($data);
 
@@ -56,7 +62,16 @@ class CustomerController extends Controller
         $data = $request->validate([
             'name' => 'required|string|min:2|max:100',
             'phone_number' => 'required|string|min:12|max:20',
+            'profile_picture' => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('profile_picture')) {
+            if ($customer->profile_picture) {
+                Storage::disk('public')->delete($customer->profile_picture);
+            }
+
+            $data['profile_picture'] = $request->file('profile_picture')->store('customers', 'public');
+        }
 
         $customer->update($data);
 
@@ -68,6 +83,10 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        if ($customer->profile_picture) {
+            Storage::disk('public')->delete($customer->profile_picture);
+        }
+
         $customer->delete();
 
         return redirect()->route('customer-list');

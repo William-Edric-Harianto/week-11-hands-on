@@ -9,7 +9,7 @@
             <a href="{{ route('customer-list') }}" class="btn btn-secondary">Back</a>
         </div>
 
-        <form action="{{ route('store-customer') }}" method="POST">
+        <form action="{{ route('store-customer') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group">
@@ -42,6 +42,14 @@
                     required
                 >
                 @error('phone_number')
+                    <p class="error">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="profile_picture">Profile Picture</label>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                @error('profile_picture')
                     <p class="error">{{ $message }}</p>
                 @enderror
             </div>

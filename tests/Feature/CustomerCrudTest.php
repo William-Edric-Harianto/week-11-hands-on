@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CustomerCrudTest extends TestCase
@@ -154,5 +156,44 @@ class CustomerCrudTest extends TestCase
             'name' => 'Original Name',
             'phone_number' => '081234567890',
         ]);
+    }
+
+    public function test_customer_profile_picture_can_be_stored_updated_and_displayed(): void
+    {
+        Storage::fake('public');
+
+        $profilePicture = UploadedFile::fake()->image('avatar.jpg');
+
+        $storeResponse = $this->post(route('store-customer'), [
+            'name' => 'Dewi Lestari',
+            'phone_number' => '081234567890',
+            'profile_picture' => $profilePicture,
+        ]);
+
+        $storeResponse->assertRedirect(route('customer-list'));
+        $customer = Customer::firstOrFail();
+        $this->assertNotNull($customer->profile_picture);
+        Storage::disk('public')->assertExists($customer->profile_picture);
+
+        $indexResponse = $this->get(route('customer-list'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee(asset('storage/'.$customer->profile_picture), false);
+
+        $newPicture = UploadedFile::fake()->image('avatar-new.jpg');
+        $oldPicturePath = $customer->profile_picture;
+
+        $updateResponse = $this->post(route('update-customer', $customer), [
+            'name' => 'Dewi Lestari Updated',
+            'phone_number' => '081234567891',
+            'profile_picture' => $newPicture,
+        ]);
+
+        $updateResponse->assertRedirect(route('customer-list'));
+        $customer->refresh();
+        Storage::disk('public')->assertMissing($oldPicturePath);
+        Storage::disk('public')->assertExists($customer->profile_picture);
+
+        $this->delete(route('delete-customer', $customer));
+        Storage::disk('public')->assertMissing($customer->profile_picture);
     }
 }

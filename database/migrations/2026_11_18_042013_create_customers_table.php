@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100);
             $table->string('phone_number', 20);
+            $table->string('profile_picture')->nullable();
             $table->timestamps();
         });
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,8 +10,10 @@ class Customer extends Model
 {
     protected $fillable = [
         'name',
-        'phone_number'
+        'phone_number',
+        'profile_picture',
     ];
-    /** @use HasFactory<\Database\Factories\CustomerFactory> */
+
+    /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 }

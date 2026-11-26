@@ -9,7 +9,7 @@
             <a href="{{ route('service-list') }}" class="btn btn-secondary">Back</a>
         </div>
 
-        <form action="{{ route('update-service', $service) }}" method="POST">
+        <form action="{{ route('update-service', $service) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="form-group">
@@ -39,6 +39,19 @@
                     required
                 >{{ old('description', $service->description) }}</textarea>
                 @error('description')
+                    <p class="error">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="image">Image</label>
+                @if ($service->image)
+                    <div style="margin-bottom: 8px;">
+                        <img src="{{ asset('storage/' . $service->image) }}" alt="service_image" width="150">
+                    </div>
+                @endif
+                <input type="file" id="image" name="image" accept="image/*">
+                @error('image')
                     <p class="error">{{ $message }}</p>
                 @enderror
             </div>
